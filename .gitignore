@@ -72,3 +72,6 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Android .apk
+android/app/build/outputs/apk/debug/app-debug.apk
