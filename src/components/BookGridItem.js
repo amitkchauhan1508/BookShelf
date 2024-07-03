@@ -35,6 +35,9 @@ const BookGridItem = ({item, navigation}) => {
             <Text style={styles.nameText} numberOfLines={2}>
               {item.name}
             </Text>
+            <Text style={styles.category} numberOfLines={1}>
+              {item.category}
+            </Text>
             <Text style={styles.priceText}>$ {item.price}</Text>
           </View>
           <TouchableOpacity
@@ -82,6 +85,18 @@ const styles = StyleSheet.create({
     height: 28,
     overflow: 'hidden',
     fontFamily: 'Roboto', // Apply Robot font here
+  },
+  category: {
+    fontSize: 12,
+    marginBottom: 10,
+    color: 'white',
+    backgroundColor: 'black',
+    display: 'flex',
+    padding: 4,
+    width: '60%',
+    textAlign: 'center',
+    overflow: 'hidden',
+    borderRadius: 10,
   },
   priceText: {
     color: 'orange',

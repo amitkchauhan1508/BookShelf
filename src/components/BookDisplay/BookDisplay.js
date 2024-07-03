@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useMemo, useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import BookGridItem from '../BookGridItem';
 import {palette} from '../../theme.util';
 import {useNavigation} from '@react-navigation/native';
 import {Stagger} from 'native-base';
+
 
 const BookDisplay = ({
   title = '',
@@ -11,8 +12,10 @@ const BookDisplay = ({
   sliceLeft,
   sliceRight,
   handleShowAll,
+  categoryFilter = '',
 }) => {
   const navigation = useNavigation();
+  
 
   return (
     <View style={styles.container}>

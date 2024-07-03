@@ -1,5 +1,6 @@
 import {
   Badge,
+  Button,
   Divider,
   FavouriteIcon,
   Flex,
@@ -9,7 +10,7 @@ import {
   Text,
   VStack,
 } from 'native-base';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Dimensions, FlatList, StyleSheet, View} from 'react-native';
 import BackButton from '../components/BackButton';
 import BookDisplay from '../components/BookDisplay/BookDisplay';
@@ -20,15 +21,23 @@ import fetchBooks from '../services/api';
 import {palette} from '../theme.util';
 import RecentlyViewed from '../components/RecentlyViewed/RecentlyViewed';
 import {LogBox} from 'react-native';
+import {categories} from '../assets/data';
+import CategoryComponent from '../components/Categories';
+
+const PAGE_SIZE = 10;
 
 const HomeScreen = ({navigation}) => {
   const [books, setBooks] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAllClicked, setShowAllClicked] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [categoryFilter, setCategoryFilter] = useState('All');
+
   const profileUri =
     'https://media.licdn.com/dms/image/C4E03AQEoNKbELJ8Jig/profile-displayphoto-shrink_800_800/0/1516487429952?e=1720656000&v=beta&t=3Gq__NUGnjYE-T7I9I8DdUFM0WynXov2en_W6tJT1EA';
   const {wishlist} = useWishlist();
   const handleShowAll = () => setShowAllClicked(true);
+
   useEffect(() => {
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
     LogBox.ignoreLogs([
@@ -42,9 +51,43 @@ const HomeScreen = ({navigation}) => {
     fetchData();
   }, []);
 
-  const filteredBooks = books.filter(book =>
-    book.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const onSelectCategory = category => {
+    setCategoryFilter(category);
+  };
+
+  const filteredBooks = useMemo(() => {
+    return books.filter(book => {
+      const matchesCategory =
+        categoryFilter === 'All' ||
+        book.category.toLowerCase().includes(categoryFilter.toLowerCase());
+      const matchesSearchQuery =
+        book.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        book.category.toLowerCase().includes(searchQuery.toLowerCase());
+      setCurrentPage(1); // when any search is made we reset back the page number to 1
+      return matchesCategory && matchesSearchQuery;
+    });
+  }, [books, categoryFilter, searchQuery]);
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredBooks.slice(start, start + PAGE_SIZE);
+  }, [filteredBooks, currentPage]);
+
+  const handleNextPage = () => {
+    if (currentPage < Math.ceil(filteredBooks.length / PAGE_SIZE)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const totalPages = Math.ceil(filteredBooks.length / PAGE_SIZE);
+
   return (
     <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
@@ -140,16 +183,44 @@ const HomeScreen = ({navigation}) => {
                 },
               },
             }}>
-            <FlatList
-              data={filteredBooks}
-              showsVerticalScrollIndicator={false}
-              renderItem={({item}) => (
-                <BookGridItem item={item} navigation={navigation} />
-              )}
-              keyExtractor={item => item.id.toString()}
-              numColumns={2} // Set the number of columns to 2
-              contentContainerStyle={styles.contentContainer}
+            <CategoryComponent
+              categories={categories}
+              onSelectCategory={onSelectCategory}
             />
+            <ScrollView
+              style={{maxHeight: Dimensions.get('window').height - 200}}>
+              <View style={styles.flatListContainer}>
+                <FlatList
+                  data={paginatedItems}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({item}) => (
+                    <BookGridItem item={item} navigation={navigation} />
+                  )}
+                  keyExtractor={item => item.id.toString()}
+                  numColumns={2}
+                  contentContainerStyle={styles.contentContainer}
+                />
+              </View>
+            </ScrollView>
+            <View style={styles.paginationContainer}>
+              <Button
+                variant="outline"
+                color="blue.100"
+                onPress={handlePreviousPage}
+                disabled={currentPage === 1}>
+                Previous
+              </Button>
+              <Text style={styles.pageNumber}>
+                Page {currentPage} of {totalPages}
+              </Text>
+              <Button
+                variant="outline"
+                color={'black'}
+                onPress={handleNextPage}
+                disabled={currentPage >= totalPages}>
+                Next
+              </Button>
+            </View>
           </Stagger>
         ) : (
           <View style={{gap: 20, marginTop: 30}}>
@@ -179,42 +250,42 @@ const HomeScreen = ({navigation}) => {
   );
 };
 
-const windowWidth = Dimensions.get('window').width;
-const itemMargin = 6;
-const numColumns = 2;
-const itemWidth = (windowWidth - itemMargin * (numColumns + 1)) / numColumns;
-
 const styles = StyleSheet.create({
-  header: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 10,
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: palette.primary,
-    fontWeight: '600',
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    backgroundColor: palette.secondary,
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    borderRadius: 40,
-  },
-  contentContainer: {
-    paddingHorizontal: itemMargin,
-    paddingBottom: itemMargin, // Add padding to the bottom to prevent the last row from being too close to the edge
-    alignItems: 'center',
-  },
   scrollView: {
     flex: 1,
   },
-  recentlyViewedContainer: {
+  container: {
+    padding: 16,
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
+  },
+  welcomeText: {
+    marginLeft: 10,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  flatListContainer: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 20,
+  },
+  paginationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 10,
+  },
+  pageNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  recentlyViewedContainer: {
+    marginTop: 20,
   },
 });
 

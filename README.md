@@ -7,7 +7,7 @@ This is a new [**React Native**](https://reactnative.dev) project, bootstrapped 
 ## Step 1: Intall Node Modules
 
 > **Note**: If you are running a project cloned or copied from different resources make sure you have installed all the node modules.
-> To install node modules follow below commands (recommended node version for this app is 18)
+> To install node modules follow below commands (recommended node version for this app is 20)
 
 ```bash
 # using npm

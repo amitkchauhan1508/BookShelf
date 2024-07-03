@@ -27,6 +27,9 @@ const BookDetailScreen = ({navigation, route}) => {
             <BackButton />
 
             <View style={styles.imageViewStyle}>
+              <Text style={styles.category} numberOfLines={1}>
+                {book.category}
+              </Text>
               <Image
                 source={book.image}
                 style={styles.image}
@@ -45,6 +48,7 @@ const BookDetailScreen = ({navigation, route}) => {
             <View style={styles.descriptionContainer}>
               <Text style={styles.descriptionTitle}>Description</Text>
               <Text style={styles.descriptionText}>{book.description}</Text>
+              <Text style={styles.authorNameText}>~{book.author}</Text>
             </View>
 
             <View style={styles.bottomContainer}>
@@ -151,6 +155,14 @@ const styles = StyleSheet.create({
     color: 'black',
     fontFamily: 'Roboto',
   },
+  authorNameText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: 'black',
+    fontFamily: 'Roboto',
+    alignSelf: 'flex-end',
+  },
 
   buyButton: {
     padding: 10,
@@ -191,6 +203,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
+  },
+  category: {
+    fontSize: 12,
+    marginBottom: 10,
+    color: 'white',
+    backgroundColor: 'black',
+    display: 'flex',
+    padding: 8,
+    width: '60%',
+    textAlign: 'center',
+    overflow: 'hidden',
+    alignSelf: 'center',
+    borderRadius: 10,
   },
   backButton: {
     top: 10,
